@@ -1,2 +1,254 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+import pandas as pd
+
+left_df = pd.read_csv("left_dataset.csv")
+right_df = pd.read_csv("right_dataset.csv")
+# checking data types, columns
+print(left_df.dtypes)
+print(right_df.dtypes)
+# checking for missing values 
+# right dataset has missing values
+
+print(left_df.shape)
+print(left_df.isnull().sum())
+
+print(right_df.shape)
+print(right_df.isnull().sum())
+left_df.head()
+# Notes parse out zipcode with separator "-", remove second after
+# city in different cases.
+# size column not needed. 
+right_df.head()
+# remove .0 in postal code
+# categories column not needed
+
+print(left_df['state'].value_counts())
+print(right_df['state'].value_counts())
+#States are standardized well, not outlier value
+
+# Remove size column of left dataset
+left_df = left_df.drop(columns=['size'])
+left_df.head()
+
+# Remove categories column of right dataset
+right_df = right_df.drop(columns=['categories'])
+right_df.head()
+
+separator = "-"
+
+for i in range(len(left_df)):
+    if separator in left_df.loc[i, "zip_code"]:
+        left_df.at[i,"zip_code"] = left_df.at[i,"zip_code"].split(separator)[0]
+
+left_df.head()
+
+right_df['postal_code'] = right_df['postal_code'].astype(str)
+right_df['postal_code'] = right_df['postal_code'].apply(lambda x: x.split('.')[0])
+
+right_df.head()
+
+import re
+punctuation = r'[^\w\s\']'
+
+# Clean the "name", "address", and "city" columns in left dataset by removing punctuation and convert to lower case
+left_df['name'] = left_df['name'].apply(lambda x: re.sub(punctuation, '', str(x)).lower())
+left_df['address'] = left_df['address'].apply(lambda x: re.sub(punctuation, '', str(x)).lower())
+left_df['city'] = left_df['city'].apply(lambda x: re.sub(punctuation, '', str(x)).lower())
+
+# Clean the "name", "address", and "city" columns in right dataset by removing punctuation and convert to lower case
+right_df['name'] = right_df['name'].apply(lambda x: re.sub(punctuation, '', str(x)).lower())
+right_df['address'] = right_df['address'].apply(lambda x: re.sub(punctuation, '', str(x)).lower())
+right_df['city'] = right_df['city'].apply(lambda x: re.sub(punctuation, '', str(x)).lower())
+
+# Iterate USPS Dictionary over address columns to standardize them 
+
+# Create a dictionary of abbreviations and their corresponding expanded forms
+abbrev_dict = {
+    'aly': 'alley',
+    'apt': 'apartment',
+    'ave': 'avenue',
+    'blvd': 'boulevard',
+    'byp': 'bypass',
+    'cir': 'circle',
+    'ct': 'court',
+    'dr': 'drive',
+    'expy': 'expressway',
+    'hwy': 'highway',
+    'ln': 'lane',
+    'pkwy': 'parkway',
+    'pl': 'place',
+    'pt': 'point',
+    'rd': 'road',
+    'sq': 'square',
+    'st': 'street',
+    'ter': 'terrace',
+    'trl': 'trail',
+    'ste':'suite',
+    'e':'east',
+    'w':'west',
+    's':'south',
+    'n':'north',
+    'llc':'limited liability company',
+    'inc':'incorporated',
+    'mlk':'martin luther king',
+    'jfk':'john f kennedy'
+    
+}
+
+# Define a function to replace abbreviations with their exapnded form
+def replace_abbreviations(text):
+    for abbrev, full in abbrev_dict.items():
+        pattern = r"\b{}\b".format(re.escape(abbrev))
+        text = re.sub(pattern, full, text)
+    return text
+
+# Replace abbreviations in the "address" column of left_df
+left_df['address'] = left_df['address'].apply(replace_abbreviations)
+
+# Replace abbreviations in the "address" column of right_df
+right_df['address'] = right_df['address'].apply(replace_abbreviations)
+
+left_df.head()
+
+right_df.head()
+
+
+left_duplicates = left_df.duplicated(subset=["business_id"])
+num_left_duplicates = left_duplicates.sum()
+print(num_left_duplicates)
+
+right_duplicates = right_df.duplicated(subset=["entity_id"])
+num_right_duplicates = right_duplicates.sum()
+print(num_right_duplicates)
+
+left_state_counts = left_df["state"].value_counts()
+print(left_state_counts)
+
+right_state_counts = right_df["state"].value_counts()
+print(right_state_counts)
+
+left_PA = left_df[left_df["state"] == "PA"]
+left_FL = left_df[left_df["state"] == "FL"]
+left_MO = left_df[left_df["state"] == "MO"]
+left_TN = left_df[left_df["state"] == "TN"]
+left_IN = left_df[left_df["state"] == "IN"]
+
+right_PA = right_df[right_df["state"] == "PA"]
+right_FL = right_df[right_df["state"] == "FL"]
+right_MO = right_df[right_df["state"] == "MO"]
+right_TN = right_df[right_df["state"] == "TN"]
+right_IN = right_df[right_df["state"] == "IN"]
+
+merged_PA = pd.merge(left_PA, right_PA, left_on=['address'], right_on=['address'],how="inner")
+merged_FL = pd.merge(left_FL, right_FL, left_on=['address'], right_on=['address'],how="inner")
+merged_MO = pd.merge(left_MO, right_MO, left_on=['address'], right_on=['address'],how="inner")
+merged_TN = pd.merge(left_TN, right_TN, left_on=['address'], right_on=['address'],how="inner")
+merged_IN = pd.merge(left_IN, right_IN, left_on=['address'], right_on=['address'],how="inner")
+
+from fuzzywuzzy import fuzz
+from tqdm import tqdm
+
+matching_results_PA = pd.DataFrame(columns=["business_id", "entity_id", "confidence_score"])
+
+dfs = []
+# Loop over all rows in the merged dataframe and find the confidence score for each pair of rows
+for i, row in tqdm(merged_PA.iterrows(), total=len(merged_PA)):
+    text1 = (row["name_x"] if pd.notna(row['name_x']) else '') 
+    text2 = (row["name_y"] if pd.notna(row['name_y']) else '')
+    score = fuzz.token_set_ratio(text1, text2)
+    if score > 80:  # add the filter for the confidence score
+        dfs.append(pd.DataFrame({"business_id": row["business_id"], "entity_id": row["entity_id"], "confidence_score": score}, index=[0]))
+
+if dfs:
+    matching_results_PA = pd.concat(dfs, ignore_index=True)
+# Print the matching results
+print(matching_results_PA.shape[0])
+
+
+# matching PA dataset
+# Create a new empty DataFrame to store the matching results
+matching_results_FL = pd.DataFrame(columns=["business_id", "entity_id", "confidence_score"])
+
+dfs = []
+# Loop over all rows in the merged dataframe and find the confidence score for each pair of rows
+for i, row in tqdm(merged_FL.iterrows(), total=len(merged_FL)):
+    text1 = (row["name_x"] if pd.notna(row['name_x']) else '') 
+    text2 = (row["name_y"] if pd.notna(row['name_y']) else '')
+    score = fuzz.token_set_ratio(text1, text2)
+    if score > 80:  # add the filter for the confidence score
+        dfs.append(pd.DataFrame({"business_id": row["business_id"], "entity_id": row["entity_id"], "confidence_score": score}, index=[0]))
+
+if dfs:
+    matching_results_FL = pd.concat(dfs, ignore_index=True)
+# Print the matching results
+print(matching_results_FL.shape[0])
+
+
+# matching MO dataset
+# Create a new empty DataFrame to store the matching results
+matching_results_MO = pd.DataFrame(columns=["business_id", "entity_id", "confidence_score"])
+
+dfs = []
+# Loop over all rows in the merged dataframe and find the confidence score for each pair of rows
+for i, row in tqdm(merged_MO.iterrows(), total=len(merged_MO)):
+    text1 = (row["name_x"] if pd.notna(row['name_x']) else '') 
+    text2 = (row["name_y"] if pd.notna(row['name_y']) else '')
+    score = fuzz.token_set_ratio(text1, text2)
+    if score > 80:  # add the filter for the confidence score
+        dfs.append(pd.DataFrame({"business_id": row["business_id"], "entity_id": row["entity_id"], "confidence_score": score}, index=[0]))
+
+if dfs:
+    matching_results_MO = pd.concat(dfs, ignore_index=True)
+# Print the matching results
+print(matching_results_MO.shape[0])
+
+
+# matching TN dataset
+# Create a new empty DataFrame to store the matching results
+matching_results_TN = pd.DataFrame(columns=["business_id", "entity_id", "confidence_score"])
+
+dfs = []
+# Loop over all rows in the merged dataframe and find the confidence score for each pair of rows
+for i, row in tqdm(merged_TN.iterrows(), total=len(merged_TN)):
+    text1 = (row["name_x"] if pd.notna(row['name_x']) else '') 
+    text2 = (row["name_y"] if pd.notna(row['name_y']) else '')
+    score = fuzz.token_set_ratio(text1, text2)
+    if score > 80:  # add the filter for the confidence score
+        dfs.append(pd.DataFrame({"business_id": row["business_id"], "entity_id": row["entity_id"], "confidence_score": score}, index=[0]))
+
+if dfs:
+    matching_results_TN = pd.concat(dfs, ignore_index=True)
+# Print the matching results
+print(matching_results_TN.shape[0])
+
+
+# matching IN dataset
+# Create a new empty DataFrame to store the matching results
+matching_results_IN = pd.DataFrame(columns=["business_id", "entity_id", "confidence_score"])
+
+dfs = []
+# Loop over all rows in the merged dataframe and find the confidence score for each pair of rows
+for i, row in tqdm(merged_IN.iterrows(), total=len(merged_IN)):
+    text1 = (row["name_x"] if pd.notna(row['name_x']) else '') 
+    text2 = (row["name_y"] if pd.notna(row['name_y']) else '')
+    score = fuzz.token_set_ratio(text1, text2)
+    if score > 80:  # add the filter for the confidence score
+        dfs.append(pd.DataFrame({"business_id": row["business_id"], "entity_id": row["entity_id"], "confidence_score": score}, index=[0]))
+
+if dfs:
+    matching_results_IN = pd.concat(dfs, ignore_index=True)
+# Print the matching results
+print(matching_results_IN.shape[0])
+
+
+# Concatenate the matching results DataFrames
+matching_results = pd.concat([matching_results_PA, matching_results_FL, matching_results_MO, matching_results_TN, matching_results_IN], ignore_index=True)
+
+# Count the number of matching results
+num_matching_results = matching_results.shape[0]
+
+print(num_matching_results)
+
+
+matching_results.head()
