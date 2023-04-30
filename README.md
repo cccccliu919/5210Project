@@ -29,6 +29,7 @@ Your submission should consist of matches that have a high degree of confidence,
 In this project, I applied Fuzzy Wuzzy matching technique and found 7164 highly matched ids (score higher than 0.8) in the left table of 98509 data and the right table of 94585 data.
 
 Documents include:
+
 left_dataset.csv
 
 Right_dataset.csv
