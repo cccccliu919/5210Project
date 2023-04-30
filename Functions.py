@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[6]:
 
 
 #Import Statements used
@@ -20,8 +19,6 @@ def load(path):
     data = pd.read_csv(path)
     return data
 
-
-# In[3]:
 
 
 #Dictionary Function
@@ -77,8 +74,6 @@ def replace_abbreviations(text):
     return text
 
 
-# In[4]:
-
 
 #Data pre processing Function
 
@@ -113,8 +108,6 @@ def left_preprocess(left_df):
     return left_df
 
 
-# In[5]:
-
 
 def right_preprocess(right_df):
      '''
@@ -145,13 +138,7 @@ def right_preprocess(right_df):
      return right_df
 
 
-# In[8]:
-
-
 #Merge left table and right_table
-
-# In[7]:
-
 
 def merge_table(left_df,right_df):
     '''
@@ -182,12 +169,7 @@ def merge_table(left_df,right_df):
     
     return merged_all
 
-
-# In[6]:
-
-
-#notes ensure that you save the resulting df of matches in a variable e.g. pa_match = per_state_matcher(merged_pa)
-
+# FuzzyWuzzy Matching Method
 
 def per_state_matcher(df):
     '''
@@ -210,16 +192,11 @@ def per_state_matcher(df):
     
 
 
-# In[8]:
-
-
-## import results to CSV
+# import results to CSV
 
 def csv_writer(df, file_name="Matching_result_Python_Warrior.csv"):
     df.to_csv(file_name, index=False)
 
-
-# In[ ]:
 
 
 
