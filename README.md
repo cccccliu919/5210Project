@@ -4,11 +4,14 @@ Python For Data Analysis - Spring 2023
 Due Date: May 1, 2023
 
 Motivation
+
 You work as a Data Analyst for a company that sells a Point of Sales (POS) system to small to
 medium businesses in the US. Your company has hundreds of thousands of clients and continues to grow. (Maybe you work for Square, maybe Shopify, maybe Stripe, etc…) One of the sales teams got their hands on a dataset of business names and locations and they were
 trying to identify the companies that are not on the platform, in other words prospective sales targets. You have been tasked with determining the overlap between the list of prospective businesses and the internal client list.
 Problem Statement
+
 You are given two datasets:
+
 - left_dataset.csv
 - right_dataset.csv
 These datasets contain business names and their addresses.
@@ -25,3 +28,9 @@ Your submission should consist of matches that have a high degree of confidence,
 # Summary
 In this project, I applied Fuzzy Wuzzy matching technique and found 7164 highly matched ids (score higher than 0.8) in the left table of 98509 data and the right table of 94585 data.
 
+Documents include:
+left_dataset.csv
+Right_dataset.csv
+Function.py
+5210_project_Python_Warrior.ipynb
+Matching_result_Python_Warrior.csv
