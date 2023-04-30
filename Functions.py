@@ -11,8 +11,6 @@ from fuzzywuzzy import fuzz
 from tqdm import tqdm
 
 
-# In[1]:
-
 
 #Load Function
 def load(path):
