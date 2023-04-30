@@ -30,7 +30,11 @@ In this project, I applied Fuzzy Wuzzy matching technique and found 7164 highly 
 
 Documents include:
 left_dataset.csv
+
 Right_dataset.csv
+
 Function.py
+
 5210_project_Python_Warrior.ipynb
+
 Matching_result_Python_Warrior.csv
