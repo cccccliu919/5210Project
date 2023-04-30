@@ -2,6 +2,7 @@
 Group Project
 Python For Data Analysis - Spring 2023
 Due Date: May 1, 2023
+
 Motivation
 You work as a Data Analyst for a company that sells a Point of Sales (POS) system to small to
 medium businesses in the US. Your company has hundreds of thousands of clients and continues to grow. (Maybe you work for Square, maybe Shopify, maybe Stripe, etc…) One of the sales teams got their hands on a dataset of business names and locations and they were
@@ -23,3 +24,4 @@ Your submission should consist of matches that have a high degree of confidence,
 
 # Summary
 In this project, I applied Fuzzy Wuzzy matching technique and found 7164 highly matched ids (score higher than 0.8) in the left table of 98509 data and the right table of 94585 data.
+
