@@ -1,6 +1,7 @@
 # 5210Project
 Group Project
 Python For Data Analysis - Spring 2023
+
 Due Date: May 1, 2023
 
 Motivation
@@ -15,6 +16,7 @@ You are given two datasets:
 - left_dataset.csv
 - right_dataset.csv
 These datasets contain business names and their addresses.
+
 The goal of this project is to find the businesses that are common to both datasets, that is, the
 businesses that have a name and address that match between the left and right datasets.
 Since the business names and addresses don't align perfectly between these datasets, you will
